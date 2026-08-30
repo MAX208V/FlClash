@@ -76,6 +76,13 @@ class _CoreContainerState extends ConsumerState<CoreManager>
 
   @override
   void onLog(Log log) {
+    // GEO 等资源更新会产生核心日志，完全静默：既不弹应用内通知，也不进日志列表
+    final isGeoLog =
+        log.payload.contains('[GEO]') ||
+        log.payload.toUpperCase().contains('GEO');
+    if (isGeoLog) {
+      return; // 直接丢弃，不进日志、不弹通知
+    }
     ref.read(logsProvider.notifier).add(log);
     if (log.logLevel == LogLevel.error) {
       globalState.showNotifier(log.payload);
@@ -117,18 +124,8 @@ class _CoreContainerState extends ConsumerState<CoreManager>
   void onGeoUpdate(String geoType, bool updating, bool skipped, String? error) {
     final geoResource = GeoResource.fromJson(geoType.toLowerCase());
     final key = geoResource.updatingKey;
-    final l10n = currentAppLocalizations;
-    if (updating) {
-      globalState.showNotifier(l10n.geoUpdating(geoResource.name));
-    } else if (skipped) {
-      globalState.showNotifier(l10n.geoSkipped(geoResource.name));
-    } else {
-      globalState.showNotifier(l10n.geoUpdated(geoResource.name));
-    }
+    // Geo 资源更新不再弹顶部通知，仅静默更新「是否正在更新」的状态标记
     ref.read(isUpdatingProvider(key).notifier).value = updating;
-    if (!updating && error != null && error.isNotEmpty) {
-      globalState.showNotifier(error);
-    }
     super.onGeoUpdate(geoType, updating, skipped, error);
   }
 }
