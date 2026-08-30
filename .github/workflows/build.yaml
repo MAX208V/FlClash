@@ -298,15 +298,16 @@ jobs:
               sed -nE 's/.*"tag_name": "([^"]+)".*/\1/p'
           )
           bash .github/scripts/generate_release_notes.sh "$pre_tag" release.md
-      - name: Push to telegram
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TAG: ${{ github.ref_name }}
-          RUN_ID: ${{ github.run_id }}
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
-          python release_telegram.py
+      # 已注释：不再推送 Telegram
+      # - name: Push to telegram
+      #   env:
+      #     TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      #     TAG: ${{ github.ref_name }}
+      #     RUN_ID: ${{ github.run_id }}
+      #   run: |
+      #     python -m pip install --upgrade pip
+      #     pip install requests
+      #     python release_telegram.py
 
       - name: Patch release.md
         run: |
