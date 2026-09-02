@@ -4523,6 +4523,15 @@ class AppLocalizations {
       args: [count],
     );
   }
+
+  String get speedTestUrl {
+    return Intl.message(
+      'Speed test url',
+      name: 'speedTestUrl',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {
