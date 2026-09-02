@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:dio/dio.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/common.dart';
@@ -66,9 +67,12 @@ class ProxiesTabViewState extends ConsumerState<ProxiesTabView>
     if (group == null) {
       return;
     }
+    cancelCurrentBandwidthTest();
+    final cancelToken = CancelToken();
+    setCurrentBandwidthCancelToken(cancelToken);
     await Future.wait([
       delayTest(group.all, group.testUrl),
-      bandwidthTest(group.all, group.testUrl),
+      bandwidthTest(group.all, group.testUrl, cancelToken),
     ]);
   }
 

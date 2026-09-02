@@ -11,6 +11,7 @@ class SpeedTest {
   Future<double> testDownload(
     String url, {
     Duration timeout = const Duration(seconds: 15),
+    CancelToken? cancelToken,
   }) async {
     final dio = Dio();
     dio.httpClientAdapter = IOHttpClientAdapter(
@@ -25,14 +26,14 @@ class SpeedTest {
       },
     );
 
-    final cancelToken = CancelToken();
+    final internalCancelToken = cancelToken ?? CancelToken();
     final stopwatch = Stopwatch()..start();
     int totalBytes = 0;
 
     try {
       final response = await dio.get<ResponseBody>(
         url,
-        cancelToken: cancelToken,
+        cancelToken: internalCancelToken,
         options: Options(responseType: ResponseType.stream),
       );
 

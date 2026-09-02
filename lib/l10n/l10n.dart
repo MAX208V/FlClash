@@ -4532,6 +4532,24 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  String get bandwidthConcurrent {
+    return Intl.message(
+      'Concurrent bandwidth tests',
+      name: 'bandwidthConcurrent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  String get bandwidthTimeout {
+    return Intl.message(
+      'Bandwidth test timeout',
+      name: 'bandwidthTimeout',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

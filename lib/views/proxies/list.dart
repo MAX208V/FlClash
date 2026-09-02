@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:dio/dio.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
@@ -338,9 +339,12 @@ class _ListHeaderState extends State<ListHeader> {
   Future<void> _delayTest() async {
     if (isLock) return;
     isLock = true;
+    cancelCurrentBandwidthTest();
+    final cancelToken = CancelToken();
+    setCurrentBandwidthCancelToken(cancelToken);
     await Future.wait([
       delayTest(widget.group.all, widget.group.testUrl),
-      bandwidthTest(widget.group.all, widget.group.testUrl),
+      bandwidthTest(widget.group.all, widget.group.testUrl, cancelToken),
     ]);
     isLock = false;
   }

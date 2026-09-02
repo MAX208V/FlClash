@@ -352,13 +352,16 @@ class SpeedTestUrlItem extends ConsumerWidget {
       resetValue: defaultSpeedTestUrl,
       dialogTitle: appLocalizations.speedTestUrl,
       value: speedTestUrl,
-      maxLength: TextInputLimits.url,
       validator: (String? value) {
         if (value == null || value.isEmpty) {
           return appLocalizations.emptyTip(appLocalizations.speedTestUrl);
         }
-        if (!value.isUrl) {
-          return appLocalizations.urlTip(appLocalizations.speedTestUrl);
+        // Support comma-separated URLs; validate each one
+        final urls = value.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+        for (final url in urls) {
+          if (!url.isUrl) {
+            return appLocalizations.urlTip(appLocalizations.speedTestUrl);
+          }
         }
         return null;
       },
@@ -369,6 +372,83 @@ class SpeedTestUrlItem extends ConsumerWidget {
         ref
             .read(appSettingProvider.notifier)
             .update((state) => state.copyWith(speedTestUrl: value));
+      },
+    );
+  }
+}
+
+class BandwidthConcurrentItem extends ConsumerWidget {
+  const BandwidthConcurrentItem({super.key});
+
+  @override
+  Widget build(BuildContext context, ref) {
+    final appLocalizations = context.appLocalizations;
+    final bandwidthConcurrent = ref.watch(
+      appSettingProvider.select((state) => state.bandwidthConcurrent),
+    );
+    return ListItem.input(
+      leading: const Icon(Icons.speed),
+      title: Text(appLocalizations.bandwidthConcurrent),
+      subtitle: Text('$bandwidthConcurrent'),
+      dialogTitle: appLocalizations.bandwidthConcurrent,
+      value: '$bandwidthConcurrent',
+      keyboardType: TextInputType.number,
+      validator: (String? value) {
+        if (value == null || value.isEmpty) {
+          return appLocalizations.emptyTip(appLocalizations.bandwidthConcurrent);
+        }
+        final n = int.tryParse(value);
+        if (n == null || n < 1 || n > 10) {
+          return '${appLocalizations.bandwidthConcurrent} (1-10)';
+        }
+        return null;
+      },
+      onChanged: (String? value) {
+        if (value == null) return;
+        final n = int.tryParse(value);
+        if (n == null || n < 1 || n > 10) return;
+        ref
+            .read(appSettingProvider.notifier)
+            .update((state) => state.copyWith(bandwidthConcurrent: n));
+      },
+    );
+  }
+}
+
+class BandwidthTimeoutItem extends ConsumerWidget {
+  const BandwidthTimeoutItem({super.key});
+
+  @override
+  Widget build(BuildContext context, ref) {
+    final appLocalizations = context.appLocalizations;
+    final bandwidthTimeout = ref.watch(
+      appSettingProvider.select((state) => state.bandwidthTimeout),
+    );
+    return ListItem.input(
+      leading: const Icon(Icons.timer),
+      title: Text(appLocalizations.bandwidthTimeout),
+      suffixText: 's',
+      subtitle: Text('${bandwidthTimeout}s'),
+      dialogTitle: appLocalizations.bandwidthTimeout,
+      value: '$bandwidthTimeout',
+      keyboardType: TextInputType.number,
+      validator: (String? value) {
+        if (value == null || value.isEmpty) {
+          return appLocalizations.emptyTip(appLocalizations.bandwidthTimeout);
+        }
+        final n = int.tryParse(value);
+        if (n == null || n < 3 || n > 60) {
+          return '${appLocalizations.bandwidthTimeout} (3-60)';
+        }
+        return null;
+      },
+      onChanged: (String? value) {
+        if (value == null) return;
+        final n = int.tryParse(value);
+        if (n == null || n < 3 || n > 60) return;
+        ref
+            .read(appSettingProvider.notifier)
+            .update((state) => state.copyWith(bandwidthTimeout: n));
       },
     );
   }
@@ -645,6 +725,8 @@ final generalItems = <Widget>[
   if (system.isDesktop) const KeepAliveIntervalItem(),
   const TestUrlItem(),
   const SpeedTestUrlItem(),
+  const BandwidthConcurrentItem(),
+  const BandwidthTimeoutItem(),
   const PortItem(),
   const HostsItem(),
   const Ipv6Item(),

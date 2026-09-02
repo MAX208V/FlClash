@@ -110,6 +110,9 @@ void main() {
       expect(restored.restoreStrategy, RestoreStrategy.compatible);
       expect(restored.customUserAgent, '');
       expect(restored.testUrl, defaultTestUrl);
+      expect(restored.speedTestUrl, defaultSpeedTestUrl);
+      expect(restored.bandwidthConcurrent, 3);
+      expect(restored.bandwidthTimeout, 5);
     });
 
     test('custom values survive round-trip', () {
@@ -131,6 +134,21 @@ void main() {
       expect(restored.closeConnections, false);
       expect(restored.testUrl, 'https://custom.test');
       expect(restored.customUserAgent, 'CustomUA/1.0');
+    });
+
+    test('custom bandwidth settings survive round-trip', () {
+      const props = AppSettingProps(
+        speedTestUrl: 'https://a.com/speed,https://b.com/speed',
+        bandwidthConcurrent: 5,
+        bandwidthTimeout: 15,
+      );
+      final restored = roundTrip(
+        () => props.toJson(),
+        AppSettingProps.fromJson,
+      );
+      expect(restored.speedTestUrl, 'https://a.com/speed,https://b.com/speed');
+      expect(restored.bandwidthConcurrent, 5);
+      expect(restored.bandwidthTimeout, 15);
     });
 
     test('safeFromJson returns default on null', () {
