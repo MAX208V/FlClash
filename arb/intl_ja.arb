@@ -153,6 +153,7 @@
   "copy": "コピー",
   "paste": "貼り付け",
   "testUrl": "URLテスト",
+  "speedTestUrl": "帯域幅テストURL",
   "sync": "同期",
   "exclude": "最近のタスクから非表示",
   "excludeDesc": "アプリがバックグラウンド時に最近のタスクから非表示",

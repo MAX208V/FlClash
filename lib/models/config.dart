@@ -73,6 +73,7 @@ abstract class AppSettingProps with _$AppSettingProps {
     @Default(false) bool openLogs,
     @Default(true) bool closeConnections,
     @Default(defaultTestUrl) String testUrl,
+    @Default(defaultSpeedTestUrl) String speedTestUrl,
     @Default(true) bool isAnimateToPage,
     @Default(false) bool autoCheckUpdate,
     @Default(false) bool showLabel,

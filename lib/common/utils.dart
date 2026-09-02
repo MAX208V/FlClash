@@ -26,6 +26,14 @@ class Utils {
     return const Color(0xFFC57F0A);
   }
 
+  Color? getBandwidthColor(double? mbps) {
+    if (mbps == null) return null;
+    if (mbps < 0) return Colors.red;
+    if (mbps >= 50) return Colors.green;
+    if (mbps >= 10) return const Color(0xFF2E7D32);
+    return const Color(0xFFEF6C00);
+  }
+
   String get id {
     final timestamp = DateTime.now().microsecondsSinceEpoch;
     final random = Random();

@@ -72,6 +72,10 @@ class ProxiesAction extends _$ProxiesAction {
     ref.read(delayDataSourceProvider.notifier).setDelay(delay);
   }
 
+  void setBandwidth(Bandwidth bandwidth) {
+    ref.read(bandwidthDataSourceProvider.notifier).setBandwidth(bandwidth);
+  }
+
   Future<void> changeProxy({
     required String groupName,
     required String proxyName,

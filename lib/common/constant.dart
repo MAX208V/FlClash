@@ -77,6 +77,21 @@ const defaultExternalController = '127.0.0.1:9090';
 const maxMobileWidth = 600;
 const maxLaptopWidth = 840;
 const defaultTestUrl = 'https://www.gstatic.com/generate_204';
+
+/// Bandwidth (speed) test download url.
+///
+/// Modeled on [faceair/clash-speedtest](https://github.com/faceair/clash-speedtest):
+/// download a fixed-size file through the proxy and compute
+/// `bytes * 8 / elapsed / 1e6` Mbps.
+const defaultSpeedTestUrl = 'http://hkg.download.datapacket.com/10mb.bin';
+
+/// Bandwidth tests download real payloads, so keep the concurrency far below
+/// [maxConcurrentDelayTests].
+const maxConcurrentBandwidthTests = 3;
+
+/// Total budget for one bandwidth test. The default payload is ~10MB, which
+/// needs a looser window than a delay probe.
+const bandwidthTestTimeout = Duration(seconds: 15);
 final commonFilter = ImageFilter.blur(
   sigmaX: 5,
   sigmaY: 5,
@@ -105,6 +120,7 @@ const stringAndStringMapEntryIterableEquality =
 const stringAndObjectMapEntryIterableEquality =
     IterableEquality<MapEntry<String, Object?>>();
 const delayMapEquality = MapEquality<String, Map<String, int?>>();
+const bandwidthMapEquality = MapEquality<String, Map<String, double?>>();
 const stringSetEquality = SetEquality<String>();
 const keyboardModifierListEquality = SetEquality<KeyboardModifier>();
 

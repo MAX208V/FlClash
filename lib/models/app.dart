@@ -9,6 +9,7 @@ import 'core.dart';
 part 'generated/app.freezed.dart';
 
 typedef DelayMap = Map<String, Map<String, int?>>;
+typedef BandwidthMap = Map<String, Map<String, double?>>;
 
 @Freezed(toStringOverride: false)
 abstract class AppState with _$AppState {
@@ -20,6 +21,7 @@ abstract class AppState with _$AppState {
     required Size viewSize,
     @Default(0) double sideWidth,
     @Default({}) DelayMap delayMap,
+    @Default({}) BandwidthMap bandwidthMap,
     @Default([]) List<Group> groups,
     @Default(0) int checkIpNum,
     required Brightness brightness,

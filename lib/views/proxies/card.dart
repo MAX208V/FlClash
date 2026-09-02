@@ -30,6 +30,10 @@ class ProxyCard extends StatelessWidget {
     proxyDelayTest(proxy, testUrl);
   }
 
+  void _handleTestCurrentBandwidth() {
+    proxyBandwidthTest(proxy, testUrl);
+  }
+
   Widget _buildDelayText() {
     return SizedBox(
       height: measure.labelSmallHeight,
@@ -62,6 +66,47 @@ class ProxyCard extends StatelessWidget {
                       style: context.textTheme.labelSmall?.copyWith(
                         overflow: TextOverflow.ellipsis,
                         color: utils.getDelayColor(delay),
+                      ),
+                    ),
+                  ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBandwidthText() {
+    return SizedBox(
+      height: measure.labelSmallHeight,
+      child: Consumer(
+        builder: (context, ref, _) {
+          final mbps = ref.watch(
+            bandwidthProvider(proxyName: proxy.name, testUrl: testUrl),
+          );
+          return FadeThroughBox(
+            alignment: type == ProxyCardType.expand
+                ? Alignment.centerLeft
+                : Alignment.centerRight,
+            child: mbps == 0 || mbps == null
+                ? SizedBox(
+                    height: measure.labelSmallHeight,
+                    width: measure.labelSmallHeight,
+                    child: mbps == 0
+                        ? const CommonCircleLoading()
+                        : IconButton(
+                            icon: const Icon(Icons.speed),
+                            iconSize: globalState.measure.labelSmallHeight,
+                            padding: EdgeInsets.zero,
+                            onPressed: _handleTestCurrentBandwidth,
+                          ),
+                  )
+                : GestureDetector(
+                    onTap: _handleTestCurrentBandwidth,
+                    child: Text(
+                      mbps > 0 ? '${mbps.toStringAsFixed(1)} Mbps' : 'Failed',
+                      style: context.textTheme.labelSmall?.copyWith(
+                        overflow: TextOverflow.ellipsis,
+                        color: utils.getBandwidthColor(mbps),
                       ),
                     ),
                   ),
@@ -120,6 +165,7 @@ class ProxyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final measure = globalState.measure;
     final delayText = _buildDelayText();
+    final bandwidthText = _buildBandwidthText();
     final proxyNameText = _buildProxyNameText(context);
     return Stack(
       children: [
@@ -153,6 +199,8 @@ class ProxyCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   delayText,
+                  const SizedBox(height: 2),
+                  bandwidthText,
                 ] else
                   SizedBox(
                     height: measure.bodySmallHeight,
@@ -176,7 +224,14 @@ class ProxyCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        delayText,
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            delayText,
+                            bandwidthText,
+                          ],
+                        ),
                       ],
                     ),
                   ),

@@ -336,6 +336,44 @@ class TestUrlItem extends ConsumerWidget {
   }
 }
 
+class SpeedTestUrlItem extends ConsumerWidget {
+  const SpeedTestUrlItem({super.key});
+
+  @override
+  Widget build(BuildContext context, ref) {
+    final appLocalizations = context.appLocalizations;
+    final speedTestUrl = ref.watch(
+      appSettingProvider.select((state) => state.speedTestUrl),
+    );
+    return ListItem.input(
+      leading: const Icon(Icons.speed),
+      title: Text(appLocalizations.speedTestUrl),
+      subtitle: Text(speedTestUrl),
+      resetValue: defaultSpeedTestUrl,
+      dialogTitle: appLocalizations.speedTestUrl,
+      value: speedTestUrl,
+      maxLength: TextInputLimits.url,
+      validator: (String? value) {
+        if (value == null || value.isEmpty) {
+          return appLocalizations.emptyTip(appLocalizations.speedTestUrl);
+        }
+        if (!value.isUrl) {
+          return appLocalizations.urlTip(appLocalizations.speedTestUrl);
+        }
+        return null;
+      },
+      onChanged: (String? value) {
+        if (value == null) {
+          return;
+        }
+        ref
+            .read(appSettingProvider.notifier)
+            .update((state) => state.copyWith(speedTestUrl: value));
+      },
+    );
+  }
+}
+
 class PortItem extends ConsumerWidget {
   const PortItem({super.key});
 
@@ -606,6 +644,7 @@ final generalItems = <Widget>[
   const UaItem(),
   if (system.isDesktop) const KeepAliveIntervalItem(),
   const TestUrlItem(),
+  const SpeedTestUrlItem(),
   const PortItem(),
   const HostsItem(),
   const Ipv6Item(),

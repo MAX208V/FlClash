@@ -253,6 +253,26 @@ class DelayDataSource extends _$DelayDataSource with AutoDisposeNotifierMixin {
 }
 
 @Riverpod(keepAlive: true)
+class BandwidthDataSource extends _$BandwidthDataSource
+    with AutoDisposeNotifierMixin {
+  @override
+  BandwidthMap build() {
+    return {};
+  }
+
+  void setBandwidth(Bandwidth bandwidth) {
+    if (state[bandwidth.url]?[bandwidth.name] != bandwidth.value) {
+      final BandwidthMap newMap = Map.from(state);
+      if (newMap[bandwidth.url] == null) {
+        newMap[bandwidth.url] = {};
+      }
+      newMap[bandwidth.url]![bandwidth.name] = bandwidth.value;
+      value = newMap;
+    }
+  }
+}
+
+@Riverpod(keepAlive: true)
 class SystemUiOverlayStyleState extends _$SystemUiOverlayStyleState
     with AutoDisposeNotifierMixin {
   @override
@@ -454,6 +474,9 @@ List<Override> buildAppStateOverrides(AppState appState) {
     viewSizeProvider.overrideWithBuild((_, _) => appState.viewSize),
     sideWidthProvider.overrideWithBuild((_, _) => appState.sideWidth),
     delayDataSourceProvider.overrideWithBuild((_, _) => appState.delayMap),
+    bandwidthDataSourceProvider.overrideWithBuild(
+      (_, _) => appState.bandwidthMap,
+    ),
     groupsProvider.overrideWithBuild((_, _) => appState.groups),
     checkIpNumProvider.overrideWithBuild((_, _) => appState.checkIpNum),
     systemBrightnessProvider.overrideWithBuild((_, _) => appState.brightness),

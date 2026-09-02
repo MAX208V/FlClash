@@ -118,6 +118,18 @@ abstract class Delay with _$Delay {
 }
 
 @freezed
+abstract class Bandwidth with _$Bandwidth {
+  const factory Bandwidth({
+    required String name,
+    required String url,
+    double? value,
+  }) = _Bandwidth;
+
+  factory Bandwidth.fromJson(Map<String, Object?> json) =>
+      _$BandwidthFromJson(json);
+}
+
+@freezed
 abstract class Now with _$Now {
   const factory Now({required String name, required String value}) = _Now;
 

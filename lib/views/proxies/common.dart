@@ -91,6 +91,56 @@ Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
   globalState.container.read(sortNumProvider.notifier).add();
 }
 
+Future<void> proxyBandwidthTest(Proxy proxy, [String? testUrl]) async {
+  final ref = globalState.container;
+  final groups = getGroups();
+  final selectedMap = ref.read(
+    currentProfileProvider.select((state) => state?.selectedMap ?? {}),
+  );
+  final state = computeRealSelectedProxyState(
+    proxy.name,
+    groups: groups,
+    selectedMap: selectedMap,
+  );
+  final currentTestUrl = state.testUrl.takeFirstValid([
+    ref.read(realSpeedTestUrlProvider(testUrl)),
+  ]);
+  if (state.proxyName.isEmpty) {
+    return;
+  }
+  ref.read(proxiesActionProvider.notifier).setBandwidth(
+    Bandwidth(name: state.proxyName, url: currentTestUrl, value: 0),
+  );
+  try {
+    final mbps = await speedTest.testDownload(
+      currentTestUrl,
+      timeout: bandwidthTestTimeout,
+    );
+    ref.read(proxiesActionProvider.notifier).setBandwidth(
+      Bandwidth(name: state.proxyName, url: currentTestUrl, value: mbps),
+    );
+  } catch (error) {
+    commonPrint.log(
+      'Bandwidth test failed for ${state.proxyName}: $error',
+      logLevel: coreFailureLogLevel(error),
+    );
+    ref.read(proxiesActionProvider.notifier).setBandwidth(
+      Bandwidth(name: state.proxyName, url: currentTestUrl, value: -1),
+    );
+  }
+}
+
+Future<void> bandwidthTest(List<Proxy> proxies, [String? testUrl]) async {
+  final batches = proxies.batch(maxConcurrentBandwidthTests);
+  for (final batch in batches) {
+    await Future.wait(
+      batch.map((proxy) async {
+        await proxyBandwidthTest(proxy, testUrl);
+      }),
+    );
+  }
+}
+
 double getScrollToSelectedOffset({
   required String groupName,
   required List<Proxy> proxies,
