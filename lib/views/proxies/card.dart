@@ -202,38 +202,35 @@ class ProxyCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   bandwidthText,
                 ] else
-                  SizedBox(
-                    height: measure.bodySmallHeight,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Flexible(
-                          flex: 1,
-                          child: TooltipText(
-                            text: Text(
-                              proxy.type,
-                              style: context.textTheme.bodySmall?.copyWith(
-                                overflow: TextOverflow.ellipsis,
-                                color: context
-                                    .textTheme
-                                    .bodySmall
-                                    ?.color
-                                    ?.opacity80,
-                              ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        flex: 1,
+                        child: TooltipText(
+                          text: Text(
+                            proxy.type,
+                            style: context.textTheme.bodySmall?.copyWith(
+                              overflow: TextOverflow.ellipsis,
+                              color: context
+                                  .textTheme
+                                  .bodySmall
+                                  ?.color
+                                  ?.opacity80,
                             ),
                           ),
                         ),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            delayText,
-                            bandwidthText,
-                          ],
-                        ),
-                      ],
-                    ),
+                      ),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          delayText,
+                          bandwidthText,
+                        ],
+                      ),
+                    ],
                   ),
               ],
             ),

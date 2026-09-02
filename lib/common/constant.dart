@@ -83,7 +83,8 @@ const defaultTestUrl = 'https://www.gstatic.com/generate_204';
 /// Modeled on [faceair/clash-speedtest](https://github.com/faceair/clash-speedtest):
 /// download a fixed-size file through the proxy and compute
 /// `bytes * 8 / elapsed / 1e6` Mbps.
-const defaultSpeedTestUrl = 'http://hkg.download.datapacket.com/10mb.bin';
+const defaultSpeedTestUrl =
+    'https://speed.cloudflare.com/__down?bytes=10000000';
 
 /// Bandwidth tests download real payloads, so keep the concurrency far below
 /// [maxConcurrentDelayTests].
@@ -91,7 +92,7 @@ const maxConcurrentBandwidthTests = 3;
 
 /// Total budget for one bandwidth test. The default payload is ~10MB, which
 /// needs a looser window than a delay probe.
-const bandwidthTestTimeout = Duration(seconds: 15);
+const bandwidthTestTimeout = Duration(seconds: 30);
 final commonFilter = ImageFilter.blur(
   sigmaX: 5,
   sigmaY: 5,
