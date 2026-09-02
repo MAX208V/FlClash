@@ -154,6 +154,8 @@
   "paste": "貼り付け",
   "testUrl": "URLテスト",
   "speedTestUrl": "帯域幅テストURL",
+  "bandwidthConcurrent": "同時帯域幅テスト数",
+  "bandwidthTimeout": "帯域幅テストタイムアウト",
   "sync": "同期",
   "exclude": "最近のタスクから非表示",
   "excludeDesc": "アプリがバックグラウンド時に最近のタスクから非表示",

@@ -861,5 +861,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "yearsAgo": m25,
     "zh_CN": MessageLookupByLibrary.simpleMessage("簡体字中国語"),
     "speedTestUrl": MessageLookupByLibrary.simpleMessage("帯域幅テストURL"),
+    "bandwidthConcurrent": MessageLookupByLibrary.simpleMessage("同時帯域幅テスト数"),
+    "bandwidthTimeout": MessageLookupByLibrary.simpleMessage("帯域幅テストタイムアウト"),
   };
 }

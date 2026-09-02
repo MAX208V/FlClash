@@ -1126,5 +1126,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "yearsAgo": m25,
     "zh_CN": MessageLookupByLibrary.simpleMessage("Упрощенный китайский"),
     "speedTestUrl": MessageLookupByLibrary.simpleMessage("URL теста пропускной способности"),
+    "bandwidthConcurrent": MessageLookupByLibrary.simpleMessage("Одновременные тесты пропускной способности"),
+    "bandwidthTimeout": MessageLookupByLibrary.simpleMessage("Тайм-аут теста пропускной способности"),
   };
 }
