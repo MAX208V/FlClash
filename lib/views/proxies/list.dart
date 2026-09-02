@@ -342,10 +342,9 @@ class _ListHeaderState extends State<ListHeader> {
     cancelCurrentBandwidthTest();
     final cancelToken = CancelToken();
     setCurrentBandwidthCancelToken(cancelToken);
-    await Future.wait([
-      delayTest(widget.group.all, widget.group.testUrl),
-      bandwidthTest(widget.group.all, widget.group.testUrl, cancelToken),
-    ]);
+    // delayTest 快速完成，bandwidthTest 不阻塞 UI
+    await delayTest(widget.group.all, widget.group.testUrl);
+    bandwidthTest(widget.group.all, widget.group.testUrl, cancelToken);
     isLock = false;
   }
 

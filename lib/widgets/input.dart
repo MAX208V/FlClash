@@ -224,6 +224,7 @@ class ListInputPage extends ConsumerStatefulWidget {
   final Widget Function(String item)? leadingBuilder;
   final String? valueLabel;
   final int? itemMaxLength;
+  final FormFieldValidator<String>? valueValidator;
 
   const ListInputPage({
     super.key,
@@ -289,7 +290,12 @@ class _ListInputPageState extends ConsumerState<ListInputPage> {
         valueField: Field(
           label: widget.valueLabel ?? appLocalizations.value,
           value: item ?? '',
-          validator: uniqueValidator,
+          validator: (String? v) {
+            final u = uniqueValidator(v);
+            if (u != null) return u;
+            if (widget.valueValidator != null) return widget.valueValidator!(v);
+            return null;
+          },
         ),
         valueMaxLength: widget.itemMaxLength,
         title: item != null ? appLocalizations.edit : appLocalizations.add,

@@ -339,40 +339,55 @@ class TestUrlItem extends ConsumerWidget {
 class SpeedTestUrlItem extends ConsumerWidget {
   const SpeedTestUrlItem({super.key});
 
+  List<String> _parseUrls(String value) {
+    return value
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context, ref) {
     final appLocalizations = context.appLocalizations;
     final speedTestUrl = ref.watch(
       appSettingProvider.select((state) => state.speedTestUrl),
     );
-    return ListItem.input(
+    final urls = _parseUrls(speedTestUrl);
+    return ListTile(
       leading: const Icon(Icons.speed),
       title: Text(appLocalizations.speedTestUrl),
-      subtitle: Text(speedTestUrl),
-      resetValue: defaultSpeedTestUrl,
-      dialogTitle: appLocalizations.speedTestUrl,
-      value: speedTestUrl,
-      hintText: 'URL1, URL2, ...',
-      validator: (String? value) {
-        if (value == null || value.isEmpty) {
-          return appLocalizations.emptyTip(appLocalizations.speedTestUrl);
-        }
-        // Support comma-separated URLs; validate each one
-        final urls = value.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
-        for (final url in urls) {
-          if (!url.isUrl) {
-            return appLocalizations.urlTip(appLocalizations.speedTestUrl);
-          }
-        }
-        return null;
-      },
-      onChanged: (String? value) {
-        if (value == null) {
-          return;
-        }
+      subtitle: Text(urls.isEmpty ? speedTestUrl : '${urls.length} URLs'),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () async {
+        final result = await Navigator.of(context).push<List<String>>(
+          MaterialPageRoute(
+            builder: (_) => ListInputPage<String>(
+              title: appLocalizations.speedTestUrl,
+              items: urls,
+              titleBuilder: (item) => Text(
+                item,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              valueLabel: 'URL',
+              valueValidator: (String? value) {
+                if (value == null || value.isEmpty) {
+                  return appLocalizations.emptyTip('URL');
+                }
+                if (!value.isUrl) {
+                  return appLocalizations.urlTip('URL');
+                }
+                return null;
+              },
+            ),
+          ),
+        );
+        if (result == null) return;
+        final joined = result.join(', ');
         ref
             .read(appSettingProvider.notifier)
-            .update((state) => state.copyWith(speedTestUrl: value));
+            .update((state) => state.copyWith(speedTestUrl: joined));
       },
     );
   }

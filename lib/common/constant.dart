@@ -84,7 +84,7 @@ const defaultTestUrl = 'https://www.gstatic.com/generate_204';
 /// download a fixed-size file through the proxy and compute
 /// `bytes * 8 / elapsed / 1e6` Mbps.
 const defaultSpeedTestUrl =
-    'https://speed.cloudflare.com/__down?bytes=10000000';
+    'https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb';
 
 /// Default concurrent bandwidth tests. Configurable via AppSettingProps.bandwidthConcurrent.
 const defaultBandwidthConcurrent = 3;

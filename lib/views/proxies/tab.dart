@@ -70,10 +70,8 @@ class ProxiesTabViewState extends ConsumerState<ProxiesTabView>
     cancelCurrentBandwidthTest();
     final cancelToken = CancelToken();
     setCurrentBandwidthCancelToken(cancelToken);
-    await Future.wait([
-      delayTest(group.all, group.testUrl),
-      bandwidthTest(group.all, group.testUrl, cancelToken),
-    ]);
+    await delayTest(group.all, group.testUrl);
+    bandwidthTest(group.all, group.testUrl, cancelToken);
   }
 
   Group? get currentGroup {
