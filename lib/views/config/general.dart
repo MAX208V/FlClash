@@ -352,6 +352,7 @@ class SpeedTestUrlItem extends ConsumerWidget {
       resetValue: defaultSpeedTestUrl,
       dialogTitle: appLocalizations.speedTestUrl,
       value: speedTestUrl,
+      hintText: 'URL1, URL2, ...',
       validator: (String? value) {
         if (value == null || value.isEmpty) {
           return appLocalizations.emptyTip(appLocalizations.speedTestUrl);

@@ -37,6 +37,12 @@ class SpeedTest {
         options: Options(responseType: ResponseType.stream),
       );
 
+      // Accept both 200 OK and 206 Partial Content (Range requests).
+      final statusCode = response.statusCode ?? 0;
+      if (statusCode != 200 && statusCode != 206) {
+        throw StateError('Unexpected status $statusCode');
+      }
+
       final stream = response.data!.stream;
       await for (final chunk in stream) {
         totalBytes += chunk.length;

@@ -143,9 +143,7 @@ Future<void> proxyBandwidthTest(
   );
 
   for (var i = 0; i < speedUrls.length; i++) {
-    if (cancelToken?.isCancelled == true) {
-      return;
-    }
+    if (cancelToken?.isCancelled == true) return;
     final url = speedUrls[i];
     try {
       final mbps = await speedTest.testDownload(
@@ -159,6 +157,13 @@ Future<void> proxyBandwidthTest(
         );
         return;
       }
+    } on DioException catch (e) {
+      // CancelToken cancellation – abort immediately, do not try next URL.
+      if (e.type == DioExceptionType.cancel) return;
+      commonPrint.log(
+        'Bandwidth test failed for ${state.proxyName} (url: $url): $e',
+        logLevel: coreFailureLogLevel(e),
+      );
     } catch (error) {
       commonPrint.log(
         'Bandwidth test failed for ${state.proxyName} (url: $url): $error',
@@ -183,9 +188,13 @@ Future<void> bandwidthTest(
   final batches = proxies.batch(concurrent);
   for (final batch in batches) {
     if (cancelToken?.isCancelled == true) return;
-    await Future.wait(
-      batch.map((proxy) => proxyBandwidthTest(proxy, testUrl, cancelToken)),
+    // Fire all proxies in this batch concurrently.
+    final futures = batch.map(
+      (proxy) => proxyBandwidthTest(proxy, testUrl, cancelToken),
     );
+    // When cancelled, don't block waiting for in-flight requests to finish.
+    if (cancelToken?.isCancelled == true) return;
+    await Future.wait(futures);
   }
 }
 

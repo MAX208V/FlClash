@@ -86,6 +86,7 @@ final class _InputAction extends _ListItemAction {
   final String title;
   final String value;
   final String? suffixText;
+  final String? hintText;
   final ValueChanged<String?> onChanged;
   final FormFieldValidator<String>? validator;
   final int? maxLength;
@@ -96,6 +97,7 @@ final class _InputAction extends _ListItemAction {
     required this.title,
     required this.value,
     this.suffixText,
+    this.hintText,
     required this.onChanged,
     this.resetValue,
     this.validator,
@@ -233,6 +235,7 @@ class ListItem<T> extends StatelessWidget {
     required String dialogTitle,
     required String value,
     String? suffixText,
+    String? hintText,
     required ValueChanged<String?> onChanged,
     FormFieldValidator<String>? validator,
     int? maxLength,
@@ -251,6 +254,7 @@ class ListItem<T> extends StatelessWidget {
          title: dialogTitle,
          value: value,
          suffixText: suffixText,
+         hintText: hintText,
          onChanged: onChanged,
          validator: validator,
          maxLength: maxLength,
@@ -424,6 +428,7 @@ class ListItem<T> extends StatelessWidget {
                 title: inputDelegate.title,
                 value: inputDelegate.value,
                 suffixText: inputDelegate.suffixText,
+                hintText: inputDelegate.hintText,
                 resetValue: inputDelegate.resetValue,
                 inputFormatters: inputDelegate.maxLength == null
                     ? null
