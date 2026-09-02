@@ -338,7 +338,10 @@ class _ListHeaderState extends State<ListHeader> {
   Future<void> _delayTest() async {
     if (isLock) return;
     isLock = true;
-    await delayTest(widget.group.all, widget.group.testUrl);
+    await Future.wait([
+      delayTest(widget.group.all, widget.group.testUrl),
+      bandwidthTest(widget.group.all, widget.group.testUrl),
+    ]);
     isLock = false;
   }
 

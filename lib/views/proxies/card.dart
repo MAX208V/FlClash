@@ -199,7 +199,7 @@ class ProxyCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   delayText,
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   bandwidthText,
                 ] else
                   SizedBox(
