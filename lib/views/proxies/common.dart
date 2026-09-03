@@ -138,7 +138,7 @@ Future<void> proxyBandwidthTest(
       .map((s) => s.trim())
       .where((s) => s.isNotEmpty)
       .toList();
-  final timeout = Duration(
+  final connectTimeout = Duration(
     seconds: ref.read(appSettingProvider).bandwidthTimeout,
   );
 
@@ -148,7 +148,7 @@ Future<void> proxyBandwidthTest(
     try {
       final mbps = await speedTest.testDownload(
         url,
-        timeout: timeout,
+        connectTimeout: connectTimeout,
         cancelToken: cancelToken,
       );
       if (mbps > 0) {

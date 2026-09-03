@@ -8,9 +8,11 @@ import 'package:fl_clash/state.dart';
 /// Downloads a file through the Clash proxy and returns the measured speed
 /// in Mbps (megabits per second).
 class SpeedTest {
+  /// 测带宽：[connectTimeout] 控制连通性超时（默认 10s），
+  /// 下载本身不设超时，自然跑完以准确计算速度。
   Future<double> testDownload(
     String url, {
-    Duration timeout = const Duration(seconds: 15),
+    Duration connectTimeout = const Duration(seconds: 10),
     CancelToken? cancelToken,
   }) async {
     final dio = Dio();
@@ -21,7 +23,7 @@ class SpeedTest {
           client.userAgent = globalState.ua;
           return FlClashHttpOverrides.handleFindProxy(uri);
         };
-        client.connectionTimeout = timeout;
+        client.connectionTimeout = connectTimeout;
         return client;
       },
     );
