@@ -235,6 +235,7 @@ class ListInputPage extends ConsumerStatefulWidget {
     this.valueLabel,
     this.subtitleBuilder,
     this.itemMaxLength,
+    this.valueValidator,
   });
 
   @override
