@@ -40,8 +40,10 @@ class SpeedTest {
         options: Options(responseType: ResponseType.stream),
       );
 
-      // Accept both 200 OK and 206 Partial Content (Range requests).
       final statusCode = response.statusCode ?? 0;
+      if (statusCode == 204) {
+        throw StateError('No content (204): URL is a probe endpoint, not a download file');
+      }
       if (statusCode != 200 && statusCode != 206) {
         throw StateError('Unexpected status $statusCode');
       }
@@ -49,11 +51,8 @@ class SpeedTest {
       final stream = response.data!.stream;
       await for (final chunk in stream) {
         totalBytes += chunk.length;
-        // Log progress every ~2MB
-        if (totalBytes % (2 * 1024 * 1024) < chunk.length) {
-          commonPrint.log('Bandwidth download progress: ${totalBytes ~/ 1024}KB');
-        }
       }
+      commonPrint.log('speed_test done: url=$url total=${(totalBytes / 1024).toStringAsFixed(0)}KB elapsed=${(stopwatch.elapsedMilliseconds / 1000).toStringAsFixed(1)}s');
 
       stopwatch.stop();
       final elapsed = stopwatch.elapsedMilliseconds / 1000.0;

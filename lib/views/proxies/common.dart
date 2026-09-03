@@ -122,9 +122,10 @@ Future<void> proxyBandwidthTest(
     groups: groups,
     selectedMap: selectedMap,
   );
-  final currentTestUrl = state.testUrl.takeFirstValid([
-    ref.read(realSpeedTestUrlProvider(testUrl)),
-  ]);
+  // Bandwidth URL first: groups' testUrl is for delay probes (e.g. generate_204),
+  // not suitable for bandwidth downloads.
+  final bandwidthUrl = ref.read(realSpeedTestUrlProvider(testUrl));
+  final currentTestUrl = bandwidthUrl.takeFirstValid([state.testUrl]);
   if (state.proxyName.isEmpty) {
     return;
   }
