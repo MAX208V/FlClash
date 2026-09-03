@@ -362,7 +362,7 @@ class SpeedTestUrlItem extends ConsumerWidget {
       onTap: () async {
         final result = await Navigator.of(context).push<List<String>>(
           MaterialPageRoute(
-            builder: (_) => ListInputPage<String>(
+            builder: (_) => ListInputPage(
               title: appLocalizations.speedTestUrl,
               items: urls,
               titleBuilder: (item) => Text(
