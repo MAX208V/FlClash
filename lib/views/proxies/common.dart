@@ -141,6 +141,10 @@ Future<void> proxyBandwidthTest(
   final connectTimeout = Duration(
     seconds: ref.read(appSettingProvider).bandwidthTimeout,
   );
+  commonPrint.log(
+    'Bandwidth test start: ${state.proxyName} urls=$speedUrls '
+    'connectTimeout=${connectTimeout.inSeconds}s',
+  );
 
   for (var i = 0; i < speedUrls.length; i++) {
     if (cancelToken?.isCancelled == true) return;
@@ -152,6 +156,9 @@ Future<void> proxyBandwidthTest(
         cancelToken: cancelToken,
       );
       if (mbps > 0) {
+        commonPrint.log(
+          'Bandwidth test OK: ${state.proxyName} ${mbps}Mbps',
+        );
         ref.read(proxiesActionProvider.notifier).setBandwidth(
           Bandwidth(name: state.proxyName, url: currentTestUrl, value: mbps),
         );
@@ -161,12 +168,15 @@ Future<void> proxyBandwidthTest(
       // CancelToken cancellation – abort immediately, do not try next URL.
       if (e.type == DioExceptionType.cancel) return;
       commonPrint.log(
-        'Bandwidth test failed for ${state.proxyName} (url: $url): $e',
+        'Bandwidth test failed for ${state.proxyName} (url: $url): '
+        'type=${e.type} statusCode=${e.response?.statusCode} '
+        'message=${e.message} error=${e.error}',
         logLevel: coreFailureLogLevel(e),
       );
     } catch (error) {
       commonPrint.log(
-        'Bandwidth test failed for ${state.proxyName} (url: $url): $error',
+        'Bandwidth test failed for ${state.proxyName} (url: $url): '
+        '${error.runtimeType}: $error',
         logLevel: coreFailureLogLevel(error),
       );
     }

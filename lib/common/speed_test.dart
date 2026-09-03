@@ -31,6 +31,7 @@ class SpeedTest {
     final internalCancelToken = cancelToken ?? CancelToken();
     final stopwatch = Stopwatch()..start();
     int totalBytes = 0;
+    commonPrint.log('speed_test: connecting to $url (connectTimeout=${connectTimeout.inSeconds}s)');
 
     try {
       final response = await dio.get<ResponseBody>(
@@ -48,6 +49,10 @@ class SpeedTest {
       final stream = response.data!.stream;
       await for (final chunk in stream) {
         totalBytes += chunk.length;
+        // Log progress every ~2MB
+        if (totalBytes % (2 * 1024 * 1024) < chunk.length) {
+          commonPrint.log('Bandwidth download progress: ${totalBytes ~/ 1024}KB');
+        }
       }
 
       stopwatch.stop();
