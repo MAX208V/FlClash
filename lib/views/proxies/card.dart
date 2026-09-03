@@ -31,7 +31,7 @@ class ProxyCard extends StatelessWidget {
   }
 
   void _handleTestCurrentBandwidth() {
-    proxyBandwidthTest(proxy, testUrl);
+    proxyBandwidthTest(proxy);
   }
 
   Widget _buildDelayText() {

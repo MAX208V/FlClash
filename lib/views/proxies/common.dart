@@ -109,7 +109,6 @@ Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
 
 Future<void> proxyBandwidthTest(
   Proxy proxy, [
-  String? testUrl,
   CancelToken? cancelToken,
 ]) async {
   final ref = globalState.container;
@@ -122,10 +121,9 @@ Future<void> proxyBandwidthTest(
     groups: groups,
     selectedMap: selectedMap,
   );
-  // Bandwidth URL first: groups' testUrl is for delay probes (e.g. generate_204),
-  // not suitable for bandwidth downloads.
-  final bandwidthUrl = ref.read(realSpeedTestUrlProvider(testUrl));
-  final currentTestUrl = bandwidthUrl.takeFirstValid([state.testUrl]);
+  // Always use the global speedTestUrl for bandwidth downloads.
+  // Groups' testUrl (e.g. generate_204) is for delay probes, not downloads.
+  final currentTestUrl = ref.read(appSettingProvider).speedTestUrl;
   if (state.proxyName.isEmpty) {
     return;
   }
@@ -191,7 +189,6 @@ Future<void> proxyBandwidthTest(
 
 Future<void> bandwidthTest(
   List<Proxy> proxies, [
-  String? testUrl,
   CancelToken? cancelToken,
 ]) async {
   final ref = globalState.container;
@@ -201,7 +198,7 @@ Future<void> bandwidthTest(
     if (cancelToken?.isCancelled == true) return;
     // Fire all proxies in this batch concurrently.
     final futures = batch.map(
-      (proxy) => proxyBandwidthTest(proxy, testUrl, cancelToken),
+      (proxy) => proxyBandwidthTest(proxy, cancelToken),
     );
     // When cancelled, don't block waiting for in-flight requests to finish.
     if (cancelToken?.isCancelled == true) return;

@@ -344,7 +344,7 @@ class _ListHeaderState extends State<ListHeader> {
     setCurrentBandwidthCancelToken(cancelToken);
     // delayTest 快速完成，bandwidthTest 不阻塞 UI
     await delayTest(widget.group.all, widget.group.testUrl);
-    bandwidthTest(widget.group.all, widget.group.testUrl, cancelToken);
+    bandwidthTest(widget.group.all, cancelToken);
     isLock = false;
   }
 

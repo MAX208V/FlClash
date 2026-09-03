@@ -399,20 +399,14 @@ int? delay(Ref ref, {required String proxyName, String? testUrl}) {
 }
 
 @riverpod
-String realSpeedTestUrl(Ref ref, [String? testUrl]) {
-  final currentTestUrl = ref.watch(appSettingProvider).speedTestUrl;
-  return testUrl.takeFirstValid([currentTestUrl]);
-}
-
-@riverpod
 double? bandwidth(Ref ref, {required String proxyName, String? testUrl}) {
-  final currentTestUrl = ref.watch(realSpeedTestUrlProvider(testUrl));
+  // Always use the global speedTestUrl, matching what proxyBandwidthTest stores.
+  final currentTestUrl = ref.watch(appSettingProvider).speedTestUrl;
   final proxyState = ref.watch(realSelectedProxyStateProvider(proxyName));
-  final effectiveTestUrl = proxyState.testUrl.takeFirstValid([currentTestUrl]);
   final effectiveProxyName = proxyState.proxyName;
   return ref.watch(
     bandwidthDataSourceProvider.select(
-      (state) => state[effectiveTestUrl]?[effectiveProxyName],
+      (state) => state[currentTestUrl]?[effectiveProxyName],
     ),
   );
 }
