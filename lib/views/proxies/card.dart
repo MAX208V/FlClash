@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
@@ -31,7 +32,17 @@ class ProxyCard extends StatelessWidget {
   }
 
   void _handleTestCurrentBandwidth() {
-    proxyBandwidthTest(proxy);
+    cancelCurrentBandwidthTest();
+    final cancelToken = CancelToken();
+    setCurrentBandwidthCancelToken(cancelToken);
+    final all = proxy.all;
+    if (all.isNotEmpty) {
+      // 策略组：批量测试组内所有节点
+      bandwidthTest(all, cancelToken);
+    } else {
+      // 单个代理：测试单个节点
+      proxyBandwidthTest(proxy, cancelToken);
+    }
   }
 
   Widget _buildDelayText() {
