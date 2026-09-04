@@ -63,15 +63,15 @@ class ProxiesTabViewState extends ConsumerState<ProxiesTabView>
   }
 
   Future<void> delayTestCurrentGroup() async {
-    final group = widget.group;
-    if (isLock) return;
-    isLock = true;
+    final group = currentGroup;
+    if (group == null) {
+      return;
+    }
     cancelCurrentBandwidthTest();
     final cancelToken = CancelToken();
     setCurrentBandwidthCancelToken(cancelToken);
     await delayTest(group.all, group.testUrl);
     bandwidthTest(group.all, cancelToken);
-    isLock = false;
   }
 
   Group? get currentGroup {
