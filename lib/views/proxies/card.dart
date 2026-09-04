@@ -35,10 +35,12 @@ class ProxyCard extends StatelessWidget {
     cancelCurrentBandwidthTest();
     final cancelToken = CancelToken();
     setCurrentBandwidthCancelToken(cancelToken);
-    final all = proxy.all;
-    if (all.isNotEmpty) {
+    // 从 groups 列表查找该 proxy 是否为策略组
+    final groups = getGroups();
+    final group = groups.getGroup(proxy.name);
+    if (group != null && group.all.isNotEmpty) {
       // 策略组：批量测试组内所有节点
-      bandwidthTest(all, cancelToken);
+      bandwidthTest(group.all, cancelToken);
     } else {
       // 单个代理：测试单个节点
       proxyBandwidthTest(proxy, cancelToken);
