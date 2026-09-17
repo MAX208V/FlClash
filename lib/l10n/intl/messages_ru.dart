@@ -1128,5 +1128,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "speedTestUrl": MessageLookupByLibrary.simpleMessage("URL теста пропускной способности"),
     "bandwidthConcurrent": MessageLookupByLibrary.simpleMessage("Одновременные тесты пропускной способности"),
     "bandwidthTimeout": MessageLookupByLibrary.simpleMessage("Тайм-аут теста пропускной способности"),
+    "bandwidthConnectTimeout": MessageLookupByLibrary.simpleMessage("Тайм-аут соединения теста пропускной способности"),
   };
 }

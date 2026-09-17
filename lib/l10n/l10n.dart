@@ -4550,6 +4550,15 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  String get bandwidthConnectTimeout {
+    return Intl.message(
+      'Bandwidth connect timeout',
+      name: 'bandwidthConnectTimeout',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

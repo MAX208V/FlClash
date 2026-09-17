@@ -751,5 +751,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "speedTestUrl": MessageLookupByLibrary.simpleMessage("带宽测试链接"),
     "bandwidthConcurrent": MessageLookupByLibrary.simpleMessage("同时测带宽数量"),
     "bandwidthTimeout": MessageLookupByLibrary.simpleMessage("带宽测试超时"),
+    "bandwidthConnectTimeout": MessageLookupByLibrary.simpleMessage("带宽连接超时"),
   };
 }

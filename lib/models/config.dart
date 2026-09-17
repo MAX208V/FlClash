@@ -76,6 +76,7 @@ abstract class AppSettingProps with _$AppSettingProps {
     @Default(defaultSpeedTestUrl) String speedTestUrl,
     @Default(3) int bandwidthConcurrent,
     @Default(5) int bandwidthTimeout,
+    @Default(defaultBandwidthConnectTimeout) int bandwidthConnectTimeout,
     @Default(true) bool isAnimateToPage,
     @Default(false) bool autoCheckUpdate,
     @Default(false) bool showLabel,

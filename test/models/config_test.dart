@@ -113,6 +113,7 @@ void main() {
       expect(restored.speedTestUrl, defaultSpeedTestUrl);
       expect(restored.bandwidthConcurrent, 3);
       expect(restored.bandwidthTimeout, 5);
+      expect(restored.bandwidthConnectTimeout, 3);
     });
 
     test('custom values survive round-trip', () {
@@ -141,6 +142,7 @@ void main() {
         speedTestUrl: 'https://a.com/speed,https://b.com/speed',
         bandwidthConcurrent: 5,
         bandwidthTimeout: 15,
+        bandwidthConnectTimeout: 8,
       );
       final restored = roundTrip(
         () => props.toJson(),
@@ -149,6 +151,7 @@ void main() {
       expect(restored.speedTestUrl, 'https://a.com/speed,https://b.com/speed');
       expect(restored.bandwidthConcurrent, 5);
       expect(restored.bandwidthTimeout, 15);
+      expect(restored.bandwidthConnectTimeout, 8);
     });
 
     test('safeFromJson returns default on null', () {

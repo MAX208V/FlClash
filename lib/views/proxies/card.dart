@@ -42,8 +42,8 @@ class ProxyCard extends StatelessWidget {
       // 策略组：批量测试组内所有节点
       bandwidthTest(group.all, cancelToken);
     } else {
-      // 单个代理：测试单个节点
-      proxyBandwidthTest(proxy, cancelToken);
+      // 单个代理：测试单个节点（activeUrls 传 null，由函数内部探测）
+      proxyBandwidthTest(proxy, null, cancelToken);
     }
   }
 

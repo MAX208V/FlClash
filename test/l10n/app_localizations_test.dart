@@ -459,6 +459,7 @@ List<String> _allMessages(AppLocalizations appLocalizations) {
     appLocalizations.delayTest,
     appLocalizations.bandwidthConcurrent,
     appLocalizations.bandwidthTimeout,
+    appLocalizations.bandwidthConnectTimeout,
     appLocalizations.proxyGroupEmpty,
     appLocalizations.proxyGroupNameEmpty,
     appLocalizations.proxyGroupNameDuplicate,

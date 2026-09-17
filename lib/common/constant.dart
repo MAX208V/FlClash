@@ -89,8 +89,15 @@ const defaultSpeedTestUrl =
 /// Default concurrent bandwidth tests. Configurable via AppSettingProps.bandwidthConcurrent.
 const defaultBandwidthConcurrent = 3;
 
-/// Default bandwidth test timeout in seconds. Configurable via AppSettingProps.bandwidthTimeout.
+/// Default bandwidth test total timeout in seconds for a single proxy:
+/// the overall upper bound from connect to download completion.
+/// Configurable via AppSettingProps.bandwidthTimeout.
 const defaultBandwidthTimeout = 5;
+
+/// Default bandwidth test connect timeout in seconds:
+/// only controls the connection phase to the speed-test link.
+/// Configurable via AppSettingProps.bandwidthConnectTimeout.
+const defaultBandwidthConnectTimeout = 3;
 final commonFilter = ImageFilter.blur(
   sigmaX: 5,
   sigmaY: 5,

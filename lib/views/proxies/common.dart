@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/common/speed_test.dart';
@@ -107,8 +109,45 @@ Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
   globalState.container.read(sortNumProvider.notifier).add();
 }
 
+/// 并行探测所有测速 URL，返回有响应的有效 URL 列表。
+/// 全部不可达时返回空列表，由调用方决定（所有节点直接判超时）。
+Future<List<String>> probeSpeedUrls(List<String> urls) async {
+  if (urls.isEmpty) return urls;
+
+  final connectTimeout = Duration(
+    seconds:
+        globalState.container.read(appSettingProvider).bandwidthConnectTimeout,
+  );
+  commonPrint.log(
+    'probeSpeedUrls: probing ${urls.length} URLs '
+    '(connectTimeout=${connectTimeout.inSeconds}s)',
+  );
+
+  final results = await Future.wait(
+    urls.map((url) async {
+      final ok = await SpeedTest.probeUrl(
+        url,
+        connectTimeout: connectTimeout,
+      );
+      return MapEntry(url, ok);
+    }),
+  );
+
+  final active = results
+      .where((e) => e.value)
+      .map((e) => e.key)
+      .toList();
+
+  commonPrint.log(
+    'probeSpeedUrls: ${active.length}/${urls.length} URLs active'
+    '${active.isEmpty ? ' (all unreachable)' : ''}',
+  );
+  return active;
+}
+
 Future<void> proxyBandwidthTest(
   Proxy proxy, [
+  List<String>? activeUrls,
   CancelToken? cancelToken,
 ]) async {
   final ref = globalState.container;
@@ -123,27 +162,43 @@ Future<void> proxyBandwidthTest(
   );
   // Always use the global speedTestUrl for bandwidth downloads.
   // Groups' testUrl (e.g. generate_204) is for delay probes, not downloads.
-  final currentTestUrl = ref.read(appSettingProvider).speedTestUrl;
+  final rawTestUrl = ref.read(appSettingProvider).speedTestUrl;
   if (state.proxyName.isEmpty) {
     return;
   }
   ref.read(proxiesActionProvider.notifier).setBandwidth(
-    Bandwidth(name: state.proxyName, url: currentTestUrl, value: 0),
+    Bandwidth(name: state.proxyName, url: rawTestUrl, value: 0),
   );
 
-  // Split comma-separated URLs for fallback
-  final speedUrls = currentTestUrl
-      .split(',')
-      .map((s) => s.trim())
-      .where((s) => s.isNotEmpty)
-      .toList();
+  // 批量入口已全局探测过并传入 activeUrls；单节点入口在这里自己探测一次。
+  final speedUrls = activeUrls ??
+      await probeSpeedUrls(
+        rawTestUrl
+            .split(',')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList(),
+      );
+
   final connectTimeout = Duration(
+    seconds: ref.read(appSettingProvider).bandwidthConnectTimeout,
+  );
+  final totalTimeout = Duration(
     seconds: ref.read(appSettingProvider).bandwidthTimeout,
   );
   commonPrint.log(
     'Bandwidth test start: ${state.proxyName} urls=$speedUrls '
-    'connectTimeout=${connectTimeout.inSeconds}s',
+    'connectTimeout=${connectTimeout.inSeconds}s '
+    'totalTimeout=${totalTimeout.inSeconds}s',
   );
+
+  // 探测后没有任何有效链接：该节点直接判超时。
+  if (speedUrls.isEmpty) {
+    ref.read(proxiesActionProvider.notifier).setBandwidth(
+      Bandwidth(name: state.proxyName, url: rawTestUrl, value: -1),
+    );
+    return;
+  }
 
   for (var i = 0; i < speedUrls.length; i++) {
     if (cancelToken?.isCancelled == true) return;
@@ -152,6 +207,7 @@ Future<void> proxyBandwidthTest(
       final mbps = await speedTest.testDownload(
         url,
         connectTimeout: connectTimeout,
+        totalTimeout: totalTimeout,
         cancelToken: cancelToken,
       );
       if (mbps > 0) {
@@ -159,10 +215,20 @@ Future<void> proxyBandwidthTest(
           'Bandwidth test OK: ${state.proxyName} ${mbps}Mbps',
         );
         ref.read(proxiesActionProvider.notifier).setBandwidth(
-          Bandwidth(name: state.proxyName, url: currentTestUrl, value: mbps),
+          Bandwidth(name: state.proxyName, url: rawTestUrl, value: mbps),
         );
         return;
       }
+    } on TimeoutException catch (error) {
+      // 单节点总时间超时：直接判超时，不再尝试下一个 URL。
+      commonPrint.log(
+        'Bandwidth test timeout for ${state.proxyName} (url: $url)',
+        logLevel: coreFailureLogLevel(error),
+      );
+      ref.read(proxiesActionProvider.notifier).setBandwidth(
+        Bandwidth(name: state.proxyName, url: rawTestUrl, value: -1),
+      );
+      return;
     } on DioException catch (e) {
       // CancelToken cancellation – abort immediately, do not try next URL.
       if (e.type == DioExceptionType.cancel) return;
@@ -183,7 +249,7 @@ Future<void> proxyBandwidthTest(
 
   // All URLs failed
   ref.read(proxiesActionProvider.notifier).setBandwidth(
-    Bandwidth(name: state.proxyName, url: currentTestUrl, value: -1),
+    Bandwidth(name: state.proxyName, url: rawTestUrl, value: -1),
   );
 }
 
@@ -193,12 +259,50 @@ Future<void> bandwidthTest(
 ]) async {
   final ref = globalState.container;
   final concurrent = ref.read(appSettingProvider).bandwidthConcurrent;
+
+  // 全局探测一次所有测速 URL，过滤死链后所有节点共享有效列表。
+  final rawUrls = ref
+      .read(appSettingProvider)
+      .speedTestUrl
+      .split(',')
+      .map((s) => s.trim())
+      .where((s) => s.isNotEmpty)
+      .toList();
+  final activeUrls = await probeSpeedUrls(rawUrls);
+
+  if (activeUrls.isEmpty) {
+    // 所有测速链接均无响应：所有节点直接判超时，不再逐个下载。
+    commonPrint.log(
+      'bandwidthTest: all speed URLs unreachable, '
+      'marking ${proxies.length} proxies as timeout',
+    );
+    for (final proxy in proxies) {
+      if (cancelToken?.isCancelled == true) return;
+      final state = computeRealSelectedProxyState(
+        proxy.name,
+        groups: getGroups(),
+        selectedMap: ref.read(
+          currentProfileProvider.select((state) => state?.selectedMap ?? {}),
+        ),
+      );
+      if (state.proxyName.isEmpty) continue;
+      ref.read(proxiesActionProvider.notifier).setBandwidth(
+        Bandwidth(
+          name: state.proxyName,
+          url: ref.read(appSettingProvider).speedTestUrl,
+          value: -1,
+        ),
+      );
+    }
+    return;
+  }
+
   final batches = proxies.batch(concurrent);
   for (final batch in batches) {
     if (cancelToken?.isCancelled == true) return;
     // Fire all proxies in this batch concurrently.
     final futures = batch.map(
-      (proxy) => proxyBandwidthTest(proxy, cancelToken),
+      (proxy) => proxyBandwidthTest(proxy, activeUrls, cancelToken),
     );
     // When cancelled, don't block waiting for in-flight requests to finish.
     if (cancelToken?.isCancelled == true) return;
