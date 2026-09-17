@@ -208,6 +208,7 @@ Future<void> proxyBandwidthTest(
         url,
         connectTimeout: connectTimeout,
         totalTimeout: totalTimeout,
+        maxBytes: defaultBandwidthMaxBytes,
         cancelToken: cancelToken,
       );
       if (mbps > 0) {

@@ -98,6 +98,11 @@ const defaultBandwidthTimeout = 5;
 /// only controls the connection phase to the speed-test link.
 /// Configurable via AppSettingProps.bandwidthConnectTimeout.
 const defaultBandwidthConnectTimeout = 3;
+
+/// 单节点测速最大下载字节数：下载达到该量即停止并计算带宽，
+/// 避免完整下载大文件（如 135MB 的 Chrome DMG）浪费流量和时间；
+/// 配合 totalTimeout 兜底，慢速节点按已下载数据 partial 测速。
+const defaultBandwidthMaxBytes = 10 * 1024 * 1024; // 10 MB
 final commonFilter = ImageFilter.blur(
   sigmaX: 5,
   sigmaY: 5,

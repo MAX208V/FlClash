@@ -10,12 +10,17 @@ import 'package:fl_clash/state.dart';
 /// in Mbps (megabits per second).
 class SpeedTest {
   /// 测带宽：[connectTimeout] 控制连通性超时（默认 3s），[totalTimeout] 控制
-  /// 单节点测速的总体时间上限（连接 + 下载）。总时间超时会取消下载并抛出
-  /// [TimeoutException]，由调用方将该节点判为超时。
+  /// 单节点测速的总体时间上限（连接 + 下载）。
+  ///
+  /// - 下载量达到 [maxBytes] 即停止并计算带宽（测速无需下完整文件）。
+  /// - [totalTimeout] 到点但已收到数据时，用已下载字节 partial 测速返回；
+  ///   完全无数据（连接失败/无响应）才抛出 [TimeoutException]，由调用方
+  ///   将该节点判为超时。
   Future<double> testDownload(
     String url, {
     Duration connectTimeout = const Duration(seconds: 3),
     Duration? totalTimeout,
+    int? maxBytes,
     CancelToken? cancelToken,
   }) async {
     final dio = Dio();
@@ -34,11 +39,22 @@ class SpeedTest {
     final internalCancelToken = cancelToken ?? CancelToken();
     final stopwatch = Stopwatch()..start();
     int totalBytes = 0;
+    bool reachedMaxBytes = false;
     commonPrint.log(
       'speed_test: connecting to $url'
       ' (connectTimeout=${connectTimeout.inSeconds}s'
-      ', totalTimeout=${totalTimeout?.inSeconds}s)',
+      ', totalTimeout=${totalTimeout?.inSeconds}s'
+      ', maxBytes=${maxBytes ?? 'unlimited'})',
     );
+
+    double calcMbps() {
+      final elapsed = stopwatch.elapsedMilliseconds / 1000.0;
+      if (elapsed <= 0 || totalBytes == 0) {
+        throw StateError('No data received');
+      }
+      final mbps = (totalBytes * 8) / (elapsed * 1000000);
+      return double.parse(mbps.toStringAsFixed(1));
+    }
 
     Future<double> doDownload() async {
       try {
@@ -61,22 +77,20 @@ class SpeedTest {
         final stream = response.data!.stream;
         await for (final chunk in stream) {
           totalBytes += chunk.length;
+          if (maxBytes != null && totalBytes >= maxBytes) {
+            reachedMaxBytes = true;
+            break;
+          }
         }
         commonPrint.log(
           'speed_test done: url=$url'
           ' total=${(totalBytes / 1024).toStringAsFixed(0)}KB'
-          ' elapsed=${(stopwatch.elapsedMilliseconds / 1000).toStringAsFixed(1)}s',
+          ' elapsed=${(stopwatch.elapsedMilliseconds / 1000).toStringAsFixed(1)}s'
+          '${reachedMaxBytes ? ' (maxBytes reached)' : ''}',
         );
 
         stopwatch.stop();
-        final elapsed = stopwatch.elapsedMilliseconds / 1000.0;
-
-        if (elapsed <= 0 || totalBytes == 0) {
-          throw StateError('No data received');
-        }
-
-        final mbps = (totalBytes * 8) / (elapsed * 1000000);
-        return double.parse(mbps.toStringAsFixed(1));
+        return calcMbps();
       } finally {
         dio.close(force: true);
       }
@@ -89,6 +103,16 @@ class SpeedTest {
       onTimeout: () {
         // Cancel the underlying request so the socket does not hang forever.
         internalCancelToken.cancel('Bandwidth test total timeout');
+        stopwatch.stop();
+        if (totalBytes > 0) {
+          // Partial speed: enough data already received to compute Mbps.
+          commonPrint.log(
+            'speed_test partial: url=$url'
+            ' total=${(totalBytes / 1024).toStringAsFixed(0)}KB'
+            ' elapsed=${(stopwatch.elapsedMilliseconds / 1000).toStringAsFixed(1)}s',
+          );
+          return calcMbps();
+        }
         throw TimeoutException(
           'Bandwidth test total timeout (${totalTimeout.inSeconds}s)',
         );
