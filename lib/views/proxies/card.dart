@@ -43,7 +43,7 @@ class ProxyCard extends StatelessWidget {
       bandwidthTest(group.all, cancelToken);
     } else {
       // 单个代理：测试单个节点
-      proxyBandwidthTest(proxy, cancelToken);
+      proxyBandwidthTest(proxy, null, cancelToken);
     }
   }
 
