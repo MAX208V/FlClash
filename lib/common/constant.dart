@@ -89,8 +89,14 @@ const defaultSpeedTestUrl =
 /// Default concurrent bandwidth tests. Configurable via AppSettingProps.bandwidthConcurrent.
 const defaultBandwidthConcurrent = 3;
 
-/// Default bandwidth test timeout in seconds. Configurable via AppSettingProps.bandwidthTimeout.
+/// Default bandwidth test total timeout in seconds (per-node total time).
+/// Configurable via AppSettingProps.bandwidthTimeout.
 const defaultBandwidthTimeout = 5;
+
+/// Default bandwidth connect timeout in seconds (per-URL connect phase).
+/// Configurable via AppSettingProps.bandwidthConnectTimeout. When exceeded
+/// the node gives up that URL and tries the next one, or reports timeout.
+const defaultBandwidthConnectTimeout = 3;
 final commonFilter = ImageFilter.blur(
   sigmaX: 5,
   sigmaY: 5,

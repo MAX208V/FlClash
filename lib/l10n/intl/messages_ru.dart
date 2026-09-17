@@ -1127,6 +1127,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "zh_CN": MessageLookupByLibrary.simpleMessage("Упрощенный китайский"),
     "speedTestUrl": MessageLookupByLibrary.simpleMessage("URL теста пропускной способности"),
     "bandwidthConcurrent": MessageLookupByLibrary.simpleMessage("Одновременные тесты пропускной способности"),
+    "bandwidthConnectTimeout": MessageLookupByLibrary.simpleMessage("Тайм-аут подключения к тесту"),
     "bandwidthTimeout": MessageLookupByLibrary.simpleMessage("Тайм-аут теста пропускной способности"),
   };
 }

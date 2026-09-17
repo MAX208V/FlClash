@@ -750,6 +750,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "zh_CN": MessageLookupByLibrary.simpleMessage("中文简体"),
     "speedTestUrl": MessageLookupByLibrary.simpleMessage("带宽测试链接"),
     "bandwidthConcurrent": MessageLookupByLibrary.simpleMessage("同时测带宽数量"),
+    "bandwidthConnectTimeout": MessageLookupByLibrary.simpleMessage("带宽连接超时"),
     "bandwidthTimeout": MessageLookupByLibrary.simpleMessage("带宽测试超时"),
   };
 }

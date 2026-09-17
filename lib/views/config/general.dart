@@ -453,18 +453,57 @@ class BandwidthTimeoutItem extends ConsumerWidget {
           return appLocalizations.emptyTip(appLocalizations.bandwidthTimeout);
         }
         final n = int.tryParse(value);
-        if (n == null || n < 3 || n > 60) {
-          return '${appLocalizations.bandwidthTimeout} (3-60)';
+        if (n == null || n < 3 || n > 300) {
+          return '${appLocalizations.bandwidthTimeout} (3-300)';
         }
         return null;
       },
       onChanged: (String? value) {
         if (value == null) return;
         final n = int.tryParse(value);
-        if (n == null || n < 3 || n > 60) return;
+        if (n == null || n < 3 || n > 300) return;
         ref
             .read(appSettingProvider.notifier)
             .update((state) => state.copyWith(bandwidthTimeout: n));
+      },
+    );
+  }
+}
+
+class BandwidthConnectTimeoutItem extends ConsumerWidget {
+  const BandwidthConnectTimeoutItem({super.key});
+
+  @override
+  Widget build(BuildContext context, ref) {
+    final appLocalizations = context.appLocalizations;
+    final bandwidthConnectTimeout = ref.watch(
+      appSettingProvider.select((state) => state.bandwidthConnectTimeout),
+    );
+    return ListItem.input(
+      leading: const Icon(Icons.link),
+      title: Text(appLocalizations.bandwidthConnectTimeout),
+      suffixText: 's',
+      subtitle: Text('${bandwidthConnectTimeout}s'),
+      dialogTitle: appLocalizations.bandwidthConnectTimeout,
+      value: '$bandwidthConnectTimeout',
+      keyboardType: TextInputType.number,
+      validator: (String? value) {
+        if (value == null || value.isEmpty) {
+          return appLocalizations.emptyTip(appLocalizations.bandwidthConnectTimeout);
+        }
+        final n = int.tryParse(value);
+        if (n == null || n < 1 || n > 30) {
+          return '${appLocalizations.bandwidthConnectTimeout} (1-30)';
+        }
+        return null;
+      },
+      onChanged: (String? value) {
+        if (value == null) return;
+        final n = int.tryParse(value);
+        if (n == null || n < 1 || n > 30) return;
+        ref
+            .read(appSettingProvider.notifier)
+            .update((state) => state.copyWith(bandwidthConnectTimeout: n));
       },
     );
   }
@@ -743,6 +782,7 @@ final generalItems = <Widget>[
   const SpeedTestUrlItem(),
   const BandwidthConcurrentItem(),
   const BandwidthTimeoutItem(),
+  const BandwidthConnectTimeoutItem(),
   const PortItem(),
   const HostsItem(),
   const Ipv6Item(),

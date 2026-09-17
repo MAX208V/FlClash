@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/common/constant.dart';
 import 'package:fl_clash/common/speed_test.dart';
 import 'package:fl_clash/core/core.dart';
 import 'package:fl_clash/enum/enum.dart';
@@ -107,8 +110,50 @@ Future<void> delayTest(List<Proxy> proxies, [String? testUrl]) async {
   globalState.container.read(sortNumProvider.notifier).add();
 }
 
+/// Probe all configured speed-test URLs in parallel and return only
+/// the ones that are reachable (i.e. returned any HTTP response).
+/// If all URLs fail, returns the original list as fallback so that
+/// per-proxy tests still have URLs to try.
+Future<List<String>> probeSpeedUrls(List<String> urls) async {
+  if (urls.length <= 1) return urls;
+
+  final connectTimeout = Duration(
+    seconds: globalState.container.read(appSettingProvider).bandwidthConnectTimeout,
+  );
+  commonPrint.log(
+    'probeSpeedUrls: probing ${urls.length} URLs '
+    '(connectTimeout=${connectTimeout.inSeconds}s)',
+  );
+
+  final results = await Future.wait(
+    urls.map((url) async {
+      final ok = await SpeedTest.probeUrl(
+        url,
+        connectTimeout: connectTimeout,
+      );
+      return MapEntry(url, ok);
+    }),
+  );
+
+  final active = results
+      .where((e) => e.value)
+      .map((e) => e.key)
+      .toList();
+
+  if (active.isEmpty) {
+    commonPrint.log('probeSpeedUrls: all URLs unreachable, using originals');
+    return urls;
+  }
+
+  commonPrint.log(
+    'probeSpeedUrls: ${active.length}/${urls.length} URLs active',
+  );
+  return active;
+}
+
 Future<void> proxyBandwidthTest(
   Proxy proxy, [
+  List<String>? activeUrls,
   CancelToken? cancelToken,
 ]) async {
   final ref = globalState.container;
@@ -122,27 +167,31 @@ Future<void> proxyBandwidthTest(
     selectedMap: selectedMap,
   );
   // Always use the global speedTestUrl for bandwidth downloads.
-  // Groups' testUrl (e.g. generate_204) is for delay probes, not downloads.
-  final currentTestUrl = ref.read(appSettingProvider).speedTestUrl;
-  if (state.proxyName.isEmpty) {
-    return;
-  }
+  final rawTestUrl = ref.read(appSettingProvider).speedTestUrl;
+  if (state.proxyName.isEmpty) return;
+
   ref.read(proxiesActionProvider.notifier).setBandwidth(
-    Bandwidth(name: state.proxyName, url: currentTestUrl, value: 0),
+    Bandwidth(name: state.proxyName, url: rawTestUrl, value: 0),
   );
 
-  // Split comma-separated URLs for fallback
-  final speedUrls = currentTestUrl
-      .split(',')
-      .map((s) => s.trim())
-      .where((s) => s.isNotEmpty)
-      .toList();
+  // Use probed URLs if available; otherwise split comma-separated URLs
+  final speedUrls = activeUrls ??
+      rawTestUrl
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+
   final connectTimeout = Duration(
+    seconds: ref.read(appSettingProvider).bandwidthConnectTimeout,
+  );
+  final totalTimeout = Duration(
     seconds: ref.read(appSettingProvider).bandwidthTimeout,
   );
   commonPrint.log(
-    'Bandwidth test start: ${state.proxyName} urls=$speedUrls '
-    'connectTimeout=${connectTimeout.inSeconds}s',
+    'bandwidth test start: ${state.proxyName} urls=$speedUrls '
+    'connectTimeout=${connectTimeout.inSeconds}s '
+    'totalTimeout=${totalTimeout.inSeconds}s',
   );
 
   for (var i = 0; i < speedUrls.length; i++) {
@@ -152,29 +201,38 @@ Future<void> proxyBandwidthTest(
       final mbps = await speedTest.testDownload(
         url,
         connectTimeout: connectTimeout,
+        totalTimeout: totalTimeout,
         cancelToken: cancelToken,
       );
       if (mbps > 0) {
         commonPrint.log(
-          'Bandwidth test OK: ${state.proxyName} ${mbps}Mbps',
+          'bandwidth test OK: ${state.proxyName} ${mbps}Mbps',
         );
         ref.read(proxiesActionProvider.notifier).setBandwidth(
-          Bandwidth(name: state.proxyName, url: currentTestUrl, value: mbps),
+          Bandwidth(name: state.proxyName, url: rawTestUrl, value: mbps),
         );
         return;
       }
+    } on TimeoutException {
+      commonPrint.log(
+        'bandwidth test timeout for ${state.proxyName} (url: $url)',
+      );
+      // Total timeout hit – don't try next URL, report -1 directly
+      ref.read(proxiesActionProvider.notifier).setBandwidth(
+        Bandwidth(name: state.proxyName, url: rawTestUrl, value: -1),
+      );
+      return;
     } on DioException catch (e) {
-      // CancelToken cancellation – abort immediately, do not try next URL.
       if (e.type == DioExceptionType.cancel) return;
       commonPrint.log(
-        'Bandwidth test failed for ${state.proxyName} (url: $url): '
+        'bandwidth test failed for ${state.proxyName} (url: $url): '
         'type=${e.type} statusCode=${e.response?.statusCode} '
         'message=${e.message} error=${e.error}',
         logLevel: coreFailureLogLevel(e),
       );
     } catch (error) {
       commonPrint.log(
-        'Bandwidth test failed for ${state.proxyName} (url: $url): '
+        'bandwidth test failed for ${state.proxyName} (url: $url): '
         '${error.runtimeType}: $error',
         logLevel: coreFailureLogLevel(error),
       );
@@ -183,7 +241,7 @@ Future<void> proxyBandwidthTest(
 
   // All URLs failed
   ref.read(proxiesActionProvider.notifier).setBandwidth(
-    Bandwidth(name: state.proxyName, url: currentTestUrl, value: -1),
+    Bandwidth(name: state.proxyName, url: rawTestUrl, value: -1),
   );
 }
 
@@ -193,14 +251,23 @@ Future<void> bandwidthTest(
 ]) async {
   final ref = globalState.container;
   final concurrent = ref.read(appSettingProvider).bandwidthConcurrent;
+
+  // Probe all speed-test URLs upfront before per-proxy testing
+  final rawUrls = ref
+      .read(appSettingProvider)
+      .speedTestUrl
+      .split(',')
+      .map((s) => s.trim())
+      .where((s) => s.isNotEmpty)
+      .toList();
+  final activeUrls = await probeSpeedUrls(rawUrls);
+
   final batches = proxies.batch(concurrent);
   for (final batch in batches) {
     if (cancelToken?.isCancelled == true) return;
-    // Fire all proxies in this batch concurrently.
     final futures = batch.map(
-      (proxy) => proxyBandwidthTest(proxy, cancelToken),
+      (proxy) => proxyBandwidthTest(proxy, activeUrls, cancelToken),
     );
-    // When cancelled, don't block waiting for in-flight requests to finish.
     if (cancelToken?.isCancelled == true) return;
     await Future.wait(futures);
   }
